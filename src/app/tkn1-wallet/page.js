@@ -16,6 +16,7 @@ export default function HelloNear() {
   const [showSpinner, setShowSpinner] = useState(false)
 
   useEffect(() => {
+    setBalance(0)
     setLoggedIn(!!signedAccountId)
   }, [signedAccountId])
 
@@ -49,7 +50,7 @@ export default function HelloNear() {
           {" "}
           Your current balance of TKN1:{" "}
           <code className={styles.balance}>
-            {balance ? `${balance.toLocaleString()}` : "N/A"}
+            {balance.toLocaleString()}
           </code>{" "}
         </h1>
         <div className="w-100 text-end align-text-center" hidden={loggedIn}>
