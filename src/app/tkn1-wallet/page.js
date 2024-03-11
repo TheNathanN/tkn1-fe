@@ -28,6 +28,7 @@ export default function TKN1Wallett() {
   const [sendTo, setSendTo] = useState("")
   const [amount, setAmount] = useState("")
   const [showSpinner, setShowSpinner] = useState(false)
+  const [amountMinted, setAmountMinted] = useState(0)
 
   useEffect(() => {
     setBalance(0)
@@ -44,22 +45,93 @@ export default function TKN1Wallett() {
         .catch((e) => console.log(e))
   }, [viewMethod, loggedIn])
 
+  const isRegistered = async (reciever) => {
+    return await viewMethod(CONTRACT, "ft_balance_of", {
+      account_id: reciever,
+    })
+  }
+
+  const register = async (reciever) => {
+    return await callMethod(
+      CONTRACT,
+      "storage_deposit",
+      {
+        account_id: reciever,
+        registration_only: true,
+      },
+      "30000000000000",
+      "250000000000000000000000"
+    )
+  }
+
   const sendTokens = async (e) => {
     e.preventDefault()
     setShowSpinner(true)
-    await callMethod(
-      CONTRACT,
-      "ft_transfer",
-      {
-        receiver_id: sendTo,
-        amount: formatAmount(amount).toString(),
-        memo: "Sent from TKN1 Wallet App",
-      },
-      "30000000000000",
-      "1"
-    )
+    try {
+      await callMethod(
+        CONTRACT,
+        "ft_transfer",
+        {
+          receiver_id: sendTo,
+          amount: formatAmount(amount).toString(),
+          memo: "Sent from TKN1 Wallet App",
+        },
+        "30000000000000",
+        "1"
+      )
+    } catch (e) {
+      console.error("Failed to send tokens")
+      console.error(e)
+    }
     setShowSpinner(false)
   }
+
+  const claimTokens = async (e) => {
+    e.preventDefault()
+    setShowSpinner(true)
+    try {
+      await callMethod(CONTRACT, "ft_mint", {})
+    } catch (e) {
+      console.error("Failed to mint tokens")
+      console.error(e)
+    }
+    setShowSpinner(false)
+  }
+
+  const getLastMinted = async () => {
+    return await viewMethod(CONTRACT, "ft_last_minted", {
+      account_id: signedAccountId,
+    })
+  }
+
+  const getCurrentTimeInNanos = () => {
+    const date = new Date()
+    const millisecondsSinceEpoch = date.getTime()
+    return Math.floor(millisecondsSinceEpoch * 1_000_000)
+  }
+
+  const getMaxTime = async () => {
+    return await viewMethod(CONTRACT, "ft_get_max_hours", {
+      account_id: signedAccountId,
+    })
+  }
+
+  useEffect(() => {
+    if (loggedIn) {
+      const baseMint = 10000
+      const hourInNanos = 3_600_000_000_000
+      getLastMinted().then((lastMinted) => {
+        getMaxTime().then((maxTime) => {
+          const currentTimeInNanos = getCurrentTimeInNanos()
+          const timeSinceLastMint = currentTimeInNanos - lastMinted
+          const amountToMint =
+            (Math.min(timeSinceLastMint / hourInNanos, maxTime) * baseMint) /
+            1_000_000
+          setAmountMinted(amountToMint)
+        })
+      })
+    }
+  }, [loggedIn])
 
   return (
     <main className={pageStyles.main}>
@@ -114,6 +186,21 @@ export default function TKN1Wallett() {
               </>
             )}
           </form>
+
+          <section>
+            <h2>Claim</h2>
+            <p>
+              Claim {amountMinted.toFixed(6)}{" "}
+              <span className={pageStyles.highlight}>TKN1 tokens!</span>
+            </p>
+            <button
+              onClick={claimTokens}
+              disabled={amountMinted < 0.001}
+              className={""}
+            >
+              Claim Tokens
+            </button>
+          </section>
         </div>
       </div>
 

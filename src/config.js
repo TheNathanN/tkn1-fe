@@ -2,7 +2,8 @@ export const NetworkId = "testnet"
 
 export const TKN1Contract = {
   // mainnet: 'hello.near-examples.near',
-  testnet: "tkn1.testnet",
+  // testnet: "tkn1.testnet",
+  testnet: "tkn1-claim.testnet",
 }
 
 export const ComponentMap = {

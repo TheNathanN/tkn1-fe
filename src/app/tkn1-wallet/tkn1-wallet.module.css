@@ -70,6 +70,10 @@
   width: 100%;
 }
 
+.highlight {
+  display: block;
+}
+
 /* Mobile */
 @media (max-width: 768px) {
   .main {
