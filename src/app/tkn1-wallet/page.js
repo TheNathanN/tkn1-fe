@@ -118,18 +118,22 @@ export default function TKN1Wallett() {
 
   useEffect(() => {
     if (loggedIn) {
-      const baseMint = 10000
-      const hourInNanos = 3_600_000_000_000
-      getLastMinted().then((lastMinted) => {
-        getMaxTime().then((maxTime) => {
-          const currentTimeInNanos = getCurrentTimeInNanos()
-          const timeSinceLastMint = currentTimeInNanos - lastMinted
-          const amountToMint =
-            (Math.min(timeSinceLastMint / hourInNanos, maxTime) * baseMint) /
-            1_000_000
-          setAmountMinted(amountToMint)
+      const interval = setInterval(() => {
+        const baseMint = 10000
+        const hourInNanos = 3_600_000_000_000
+        getLastMinted().then((lastMinted) => {
+          getMaxTime().then((maxTime) => {
+            const currentTimeInNanos = getCurrentTimeInNanos()
+            const timeSinceLastMint = currentTimeInNanos - lastMinted
+            const amountToMint =
+              (Math.min(timeSinceLastMint / hourInNanos, maxTime) * baseMint) /
+              1_000_000
+            setAmountMinted(amountToMint)
+          })
         })
-      })
+      }, 1000)
+
+      return () => clearInterval(interval)
     }
   }, [loggedIn])
 
