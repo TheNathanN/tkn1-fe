@@ -199,7 +199,7 @@ export default function TKN1Wallett() {
             </p>
             <button
               onClick={claimTokens}
-              disabled={amountMinted < 0.001}
+              disabled={amountMinted < 0.01}
               className={""}
             >
               Claim Tokens
